@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light&Wings Magazine Crossword number 1
+    </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #crossword {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            width: fit-content;
+            margin: 0 auto;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;  /* Add this line */
+        }
+        .cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 14px;
+            text-transform: uppercase;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .number {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            font-size: 10px;
+            z-index: 2;
+        }
+        .black {
+            background-color: #000;
+        }
+        #clues {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+        }
+        .clue-list {
+            width: 48%;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        ul {
+            padding-left: 20px;
+            list-style-type: none;
+        }
+        ul ul {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <center><h1>Light & Wings Crossword Puzzle number 1</h1></center>
+    <div id="crossword"></div>
+    <div id="clues">
+        <div class="clue-list">
+            <h3>Across</h3>
+            <ul>
+                <ul>1. Illumination from within the ground (5)</ul>
+                <ul>4. Appendages for flight (5)</ul>
+                <ul>8. Dull flavor lacking excitement initially (5)</ul>
+                <ul>9. Tolerates large animals (5)</ul>
+                <ul>11. Classic gaming company mixed up a rat (5)</ul>
+                <ul>13. Quickly consume fish (3)</ul>
+                <ul>14. Flower with thorns (4)</ul>
+                <ul>16. Blossoms from the ground (7)</ul>
+                <ul>18. Bubbly cleanser (4)</ul>
+                <ul>20. Repentance for torn sari (4)</ul>
+                <ul>22. Spin around for a sweet treat (5)</ul>
+                <ul>24. Feline's facial feature (7)</ul>
+                <ul>26. Celestial body returns in the morning (3)</ul>
+                <ul>28. Heavenly body sounds like a planet (3)</ul>
+                <ul>31. Bird's home in the highest part (4)</ul>
+                <ul>33. Tree in the elm family (3)</ul>
+                <ul>34. Speak while sleeping, initially (3)</ul>
+                <ul>36. Twisted evil with no limits (4)</ul>
+                <ul>37. Longs for and turns towards water (5,3)</ul>
+            </ul>
+        </div>
+        <div class="clue-list">
+            <h3>Down</h3>
+            <ul>
+                <ul>1. Writing instruments for the penitentiary (4)</ul>
+                <ul>2. State of potatoes, perhaps? (5)</ul>
+                <ul>3. Direction to look for yeast (4)</ul>
+                <ul>5. Issue a book (7)</ul>
+                <ul>6. Flower of the eye (4)</ul>
+                <ul>7. Scoundrel takes article from Nissan (3)</ul>
+                <ul>10. Every bit of hope Leslie has (3)</ul>
+                <ul>12. Carried back a measure of resistance (4)</ul>
+                <ul>15. Entrance to a mine, oddly enough (4)</ul>
+                <ul>17. Twisted vines entangle (5)</ul>
+                <ul>19. Peculiar omen about a drink (6)</ul>
+                <ul>21. Confuse rats in the attic (5)</ul>
+                <ul>23. Wager on a heavenly body (3)</ul>
+                <ul>24. Facial hair on the chin (7)</ul>
+                <ul>25. Rabbit's home is right inside (6)</ul>
+                <ul>29. Deceive with a falsehood (3)</ul>
+                <ul>31. Lyrical poems in disarray (4)</ul>
+                <ul>32. Snakelike fish (3)</ul>
+                <ul>35. Observe with your eyes (3)</ul>
+            </ul>
+        </div>
+    </div>
+    <button onclick="checkAnswers()">Check Answers</button>
+
+    <script>
+        const grid = [
+            ['L','I','G','H','T','*','W','I','N','G','S','*','M','A','P'],
+            ['A','*','*','*','A','*','I','*','O','*','T','*','*','*','E'],
+            ['M','*','B','L','S','T','E','*','A','T','A','R','I','*','N'],
+            ['P','*','E','*','T','*','*','*','L','*','R','*','R','*','S'],
+            ['*','*','A','*','E','*','A','T','L','A','N','T','I','C','*'],
+            ['S','T','R','E','*','*','T','*','*','*','*','E','S','T','S'],
+            ['*','*','S','*','*','P','E','A','R','O','S','E','*','*','*'],
+            ['F','L','O','W','E','R','S','*','I','*','W','H','I','S','K'],
+            ['I','*','*','*','*','O','*','*','V','*','A','*','*','*','E'],
+            ['S','O','A','P','*','T','*','*','E','*','L','*','B','A','Y'],
+            ['H','*','*','*','*','H','*','S','R','*','L','*','*','*','*'],
+            ['*','A','T','L','A','N','T','I','S','*','O','D','E','S','*'],
+            ['B','*','E','*','N','*','E','L','M','*','W','*','E','*','S'],
+            ['A','*','*','*','O','*','Y','*','A','*','S','*','E','*','P'],
+            ['Y','E','A','R','N','S','*','S','W','*','*','A','R','C','H']
+        ];
+
+        const crossword = document.getElementById('crossword');
+        let currentDirection = 'across';
+        let currentCell = null;
+
+        for (let i = 0; i < grid.length; i++) {
+            for (let j = 0; j < grid[i].length; j++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                if (grid[i][j] === '*') {
+                    cell.classList.add('black');
+                } else {
+                    const input = document.createElement('input');
+                    input.maxLength = 1;
+                    input.dataset.row = i;
+                    input.dataset.col = j;
+                    input.addEventListener('keydown', handleKeyDown);
+                    input.addEventListener('focus', handleFocus);
+                    input.addEventListener('click', handleClick);
+                    cell.appendChild(input);
+                }
+                crossword.appendChild(cell);
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Backspace' || event.key === 'Delete') {
+                event.preventDefault();
+                this.value = '';
+                moveToPreviousCell(this);
+            } else if (event.key.length === 1 && event.key.match(/[a-z]/i)) {
+                event.preventDefault();
+                this.value = event.key.toUpperCase();
+                moveToNextCell(this);
+            } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                moveToNextCell(this, 'across');
+            } else if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                moveToPreviousCell(this, 'across');
+            } else if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                moveToNextCell(this, 'down');
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                moveToPreviousCell(this, 'down');
+            }
+        }
+
+        function handleFocus() {
+            currentCell = this;
+        }
+        function handleClick() {
+            if (this === currentCell) {
+                currentDirection = currentDirection === 'across' ? 'down' : 'across';
+            }
+        }
+
+        function moveToNextCell(currentInput, direction = currentDirection) {
+            const row = parseInt(currentInput.dataset.row);
+            const col = parseInt(currentInput.dataset.col);
+            let nextInput;
+
+            if (direction === 'across') {
+                nextInput = document.querySelector(`input[data-row="${row}"][data-col="${col + 1}"]`);
+                if (!nextInput) {
+                    for (let i = 0; i < 15; i++) {
+                        if (i > col && document.querySelector(`input[data-row="${row}"][data-col="${i}"]`)) {
+                            nextInput = document.querySelector(`input[data-row="${row}"][data-col="${i}"]`);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                nextInput = document.querySelector(`input[data-row="${row + 1}"][data-col="${col}"]`);
+                if (!nextInput) {
+                    for (let i = 0; i < 15; i++) {
+                        if (i > row && document.querySelector(`input[data-row="${i}"][data-col="${col}"]`)) {
+                            nextInput = document.querySelector(`input[data-row="${i}"][data-col="${col}"]`);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (nextInput) {
+                nextInput.focus();
+            }
+        }
+
+        function moveToPreviousCell(currentInput, direction = currentDirection) {
+            const row = parseInt(currentInput.dataset.row);
+            const col = parseInt(currentInput.dataset.col);
+            let prevInput;
+
+            if (direction === 'across') {
+                prevInput = document.querySelector(`input[data-row="${row}"][data-col="${col - 1}"]`);
+                if (!prevInput) {
+                    for (let i = 14; i >= 0; i--) {
+                        if (i < col && document.querySelector(`input[data-row="${row}"][data-col="${i}"]`)) {
+                            prevInput = document.querySelector(`input[data-row="${row}"][data-col="${i}"]`);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                prevInput = document.querySelector(`input[data-row="${row - 1}"][data-col="${col}"]`);
+                if (!prevInput) {
+                    for (let i = 14; i >= 0; i--) {
+                        if (i < row && document.querySelector(`input[data-row="${i}"][data-col="${col}"]`)) {
+                            prevInput = document.querySelector(`input[data-row="${i}"][data-col="${col}"]`);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (prevInput) {
+                prevInput.focus();
+            }
+        }
+
+        // Add numbers to cells
+        const numberedCells = [
+            {row: 0, col: 0, num: 1},
+            {row: 0, col: 6, num: 4},
+            {row: 2, col: 2, num: 8},
+            {row: 4, col: 6, num: 9},
+            {row: 2, col: 8, num: 11},
+            {row: 5, col: 6, num: 13},
+            {row: 6, col: 5, num: 14},
+            {row: 7, col: 0, num: 16},
+            {row: 9, col: 0, num: 18},
+            {row: 9, col: 8, num: 20},
+            {row: 11, col: 0, num: 22},
+            {row: 7, col: 11, num: 24},
+            {row: 11, col: 0, num: 26},
+            {row: 0, col: 12, num: 28},
+            {row: 12, col: 6, num: 31},
+            {row: 12, col: 6, num: 33},
+            {row: 14, col: 5, num: 34},
+            {row: 14, col: 11, num: 36},
+            {row: 14, col: 0, num: 37}
+        ];
+
+        console.log('Adding numbers to cells');
+        numberedCells.forEach(cell => {
+            const cellElement = document.querySelector(`.cell input[data-row="${cell.row}"][data-col="${cell.col}"]`);
+            if (cellElement) {
+                const numberSpan = document.createElement('span');
+                numberSpan.classList.add('number');
+                numberSpan.textContent = cell.num;
+                cellElement.parentElement.insertBefore(numberSpan, cellElement);
+                console.log(`Number ${cell.num} added successfully to cell at row ${cell.row}, col ${cell.col}`);
+            } else {
+                console.error(`Cell element not found at row ${cell.row}, col ${cell.col}`);
+            }
+        });
+
+        numberedCells.forEach(cell => {
+            const index = cell.row * 15 + cell.col;
+            const cellElement = crossword.children[index];
+            const numberSpan = document.createElement('span');
+            numberSpan.classList.add('number');
+            numberSpan.textContent = cell.num;
+            cellElement.appendChild(numberSpan);
+        });
+
+        function checkAnswers() {
+            const inputs = document.querySelectorAll('#crossword input');
+            console.log('Total inputs:', inputs.length);
+            inputs.forEach((input) => {
+                const row = parseInt(input.dataset.row);
+                const col = parseInt(input.dataset.col);
+                console.log(`Checking cell at row ${row}, col ${col}`);
+                if (grid[row][col] !== '*') {
+                    if (input.value === '') {
+                        input.style.backgroundColor = '#ffffaa'; // Light yellow for empty cells
+                        console.log(`Empty cell at row ${row}, col ${col}`);
+                    } else if (input.value.toUpperCase() === grid[row][col]) {
+                        input.style.backgroundColor = '#aaffaa'; // Light green for correct answers
+                        console.log(`Correct answer at row ${row}, col ${col}`);
+                    } else {
+                        input.style.backgroundColor = '#ffaaaa'; // Light red for incorrect answers
+                        console.log(`Incorrect answer at row ${row}, col ${col}`);
+                    }
+                } else {
+                    console.log(`Black cell at row ${row}, col ${col}`);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
