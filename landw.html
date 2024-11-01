@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Winged Lightbulb</title>
+    <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
+        }
+    }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #ar-button {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: #673AB7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 100;
+        }
+        #info {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">Tap to place the lightbulb</div>
+    <button id="ar-button">Start AR</button>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        let camera, scene, renderer;
+        let lightbulb;
+        let reticle;
+        let hitTestSource = null;
+        let hitTestSourceRequested = false;
+        let isAnimating = true;
+
+        // Replace these URLs with your actual image URLs
+        const LIGHTBULB_TEXTURE_URL = 'lightbulb.png';
+        const WING_TEXTURE_URL = 'wings.png';
+
+        async function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.xr.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            // Lighting
+            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+            light.position.set(0.5, 1, 0.25);
+            scene.add(light);
+
+            // Reticle
+            reticle = new THREE.Mesh(
+                new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
+                new THREE.MeshBasicMaterial()
+            );
+            reticle.visible = false;
+            scene.add(reticle);
+
+            // Create the lightbulb object
+            await createWingedLightbulb();
+
+            // AR Setup
+            const button = document.getElementById('ar-button');
+            button.addEventListener('click', startAR);
+
+            renderer.setAnimationLoop(render);
+        }
+
+        async function createWingedLightbulb() {
+            try {
+                lightbulb = new THREE.Group();
+
+                // Load textures
+                const textureLoader = new THREE.TextureLoader();
+                const lightbulbTexture = await new Promise((resolve, reject) => {
+                    textureLoader.load(LIGHTBULB_TEXTURE_URL, resolve, undefined, reject);
+                });
+                const wingTexture = await new Promise((resolve, reject) => {
+                    textureLoader.load(WING_TEXTURE_URL, resolve, undefined, reject);
+                });
+
+                // Bulb
+                const bulbGeometry = new THREE.PlaneGeometry(0.2, 0.2);
+                const bulbMaterial = new THREE.MeshBasicMaterial({
+                    map: lightbulbTexture,
+                    transparent: true,
+                    side: THREE.DoubleSide
+                });
+                const bulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
+                lightbulb.add(bulb);
+
+                // Wings
+                const wingGeometry = new THREE.PlaneGeometry(0.2, 0.3);
+                const wingMaterial = new THREE.MeshBasicMaterial({
+                    map: wingTexture,
+                    transparent: true,
+                    side: THREE.DoubleSide
+                });
+
+                // Left wing
+                const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+                leftWing.position.set(-0.15, 0, 0);
+                lightbulb.add(leftWing);
+
+                // Right wing
+                const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+                rightWing.position.set(0.15, 0, 0);
+                rightWing.scale.x = -1; // Flip the right wing
+                lightbulb.add(rightWing);
+
+                lightbulb.scale.set(0.5, 0.5, 0.5);
+                lightbulb.visible = false;
+            } catch (error) {
+                console.error('Error creating lightbulb:', error);
+                document.getElementById('info').textContent = 'Error loading textures';
+            }
+        }
+
+        async function startAR() {
+            try {
+                const session = await navigator.xr.requestSession('immersive-ar', {
+                    requiredFeatures: ['hit-test'],
+                    optionalFeatures: ['dom-overlay'],
+                    domOverlay: { root: document.body }
+                });
+
+                session.addEventListener('end', () => {
+                    document.getElementById('ar-button').style.display = 'block';
+                });
+
+                renderer.xr.setReferenceSpaceType('local');
+                await renderer.xr.setSession(session);
+                document.getElementById('ar-button').style.display = 'none';
+
+                session.addEventListener('select', onSelect);
+
+            } catch (error) {
+                console.error('AR session error:', error);
+                document.getElementById('info').textContent = 'AR not supported';
+            }
+        }
+
+        function onSelect() {
+            if (reticle.visible) {
+                const clone = lightbulb.clone();
+                clone.position.setFromMatrixPosition(reticle.matrix);
+                clone.visible = true;
+                scene.add(clone);
+            }
+        }
+
+        function render(timestamp, frame) {
+            if (frame) {
+                const referenceSpace = renderer.xr.getReferenceSpace();
+                const session = renderer.xr.getSession();
+
+                if (!hitTestSourceRequested) {
+                    session.requestReferenceSpace('viewer').then((referenceSpace) => {
+                        session.requestHitTestSource({ space: referenceSpace }).then((source) => {
+                            hitTestSource = source;
+                        });
+                    });
+                    hitTestSourceRequested = true;
+                }
+
+                if (hitTestSource) {
+                    const hitTestResults = frame.getHitTestResults(hitTestSource);
+                    if (hitTestResults.length) {
+                        const hit = hitTestResults[0];
+                        reticle.visible = true;
+                        reticle.matrix.fromArray(hit.getPose(referenceSpace).transform.matrix);
+                    } else {
+                        reticle.visible = false;
+                    }
+                }
+
+                // Animate all placed lightbulbs
+                scene.children.forEach(child => {
+                    if (child.isGroup && child !== reticle) {
+                        const leftWing = child.children[1];
+                        const rightWing = child.children[2];
+                        if (isAnimating) {
+                            leftWing.rotation.y = Math.sin(timestamp * 0.003) * 0.2;
+                            rightWing.rotation.y = -Math.sin(timestamp * 0.003) * 0.2;
+                        }
+                    }
+                });
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Check AR support and initialize
+        if (navigator.xr) {
+            navigator.xr.isSessionSupported('immersive-ar')
+                .then((supported) => {
+                    if (supported) {
+                        init();
+                        document.getElementById('info').textContent = 'Tap Start AR to begin';
+                    } else {
+                        document.getElementById('info').textContent = 'AR not supported on this device';
+                    }
+                })
+                .catch(error => {
+                    console.error('AR support check error:', error);
+                    document.getElementById('info').textContent = 'Error checking AR support';
+                });
+        } else {
+            document.getElementById('info').textContent = 'WebXR not available';
+        }
+    </script>
+</body>
+</html>
